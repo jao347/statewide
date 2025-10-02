@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X, Phone, Flame } from "@/components/icons";
+import { Menu, X, Phone } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { callNow } from "@/lib/utils";
 import Logo from "./logo";
+import { callNow } from "@/lib/utils";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +17,18 @@ export default function Navigation() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleSmoothScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+    const el = document.querySelector(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setIsOpen(false);
+    }
+  };
 
   return (
     <nav
@@ -34,44 +45,50 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="flex items-center space-x-8">
-              <Link
+              <a
                 href="/"
+                onClick={e => handleSmoothScroll(e, "html")}
                 className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
               >
                 Home
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-200 group-hover:w-full"></span>
-              </Link>
-              <Link
-                href="/about"
-                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
+              </a>
+              <a
+                href="#about"
+                onClick={e => handleSmoothScroll(e, "#about")}
+                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium relative group"
               >
                 About
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-200 group-hover:w-full"></span>
-              </Link>
-              <Link
-                href="/services"
-                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
+              </a>
+              <a
+                href="#services"
+                onClick={e => handleSmoothScroll(e, "#services")}
+                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium relative group"
               >
                 Services
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-200 group-hover:w-full"></span>
-              </Link>
+              </a>
               <a
-                href="/#gallery"
-                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
+                href="#gallery"
+                onClick={e => handleSmoothScroll(e, "#gallery")}
+                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium relative group"
               >
                 Gallery
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-200 group-hover:w-full"></span>
               </a>
-              <Link
-                href="/contact"
-                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
+              <a
+                href="#contact"
+                onClick={e => handleSmoothScroll(e, "#contact")}
+                className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium relative group"
               >
                 Contact
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-200 group-hover:w-full"></span>
-              </Link>
+              </a>
             </div>
           </div>
 
+          {/* Call Button (Desktop) */}
           <div className="hidden md:flex items-center">
             <Button
               onClick={callNow}
@@ -97,47 +114,48 @@ export default function Navigation() {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         <div
           className={`md:hidden transition-all duration-300 ease-in-out ${
             isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           } overflow-hidden`}
         >
           <div className="px-2 pt-2 pb-6 space-y-1 bg-white/95 backdrop-blur-md rounded-b-2xl shadow-lg">
-            <Link
+            <a
               href="/"
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 block px-4 py-3 text-base font-medium rounded-lg transition-all duration-200"
-              onClick={() => setIsOpen(false)}
+              onClick={e => handleSmoothScroll(e, "html")}
+              className="block px-4 py-3 text-base font-medium rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50"
             >
               Home
-            </Link>
-            <Link
-              href="/about"
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 block px-4 py-3 text-base font-medium rounded-lg transition-all duration-200"
-              onClick={() => setIsOpen(false)}
+            </a>
+            <a
+              href="#about"
+              onClick={e => handleSmoothScroll(e, "#about")}
+              className="block px-4 py-3 text-base font-medium rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50"
             >
               About
-            </Link>
-            <Link
-              href="/services"
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 block px-4 py-3 text-base font-medium rounded-lg transition-all duration-200"
-              onClick={() => setIsOpen(false)}
+            </a>
+            <a
+              href="#services"
+              onClick={e => handleSmoothScroll(e, "#services")}
+              className="block px-4 py-3 text-base font-medium rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50"
             >
               Services
-            </Link>
+            </a>
             <a
-              href="/#gallery"
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 block px-4 py-3 text-base font-medium rounded-lg transition-all duration-200"
-              onClick={() => setIsOpen(false)}
+              href="#gallery"
+              onClick={e => handleSmoothScroll(e, "#gallery")}
+              className="block px-4 py-3 text-base font-medium rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50"
             >
               Gallery
             </a>
-            <Link
-              href="/contact"
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 block px-4 py-3 text-base font-medium rounded-lg transition-all duration-200"
-              onClick={() => setIsOpen(false)}
+            <a
+              href="#contact"
+              onClick={e => handleSmoothScroll(e, "#contact")}
+              className="block px-4 py-3 text-base font-medium rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50"
             >
               Contact
-            </Link>
+            </a>
             <div className="pt-4">
               <Button
                 onClick={callNow}
