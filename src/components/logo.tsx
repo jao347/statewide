@@ -26,8 +26,8 @@ export default function Logo({
           <Image
             src={imageSrc}
             alt={imageAlt}
-            width={160}
-            height={40}
+            width={48}
+            height={48}
             priority
             className="h-12 w-auto object-contain shadow-lg rounded-xl"
           />
