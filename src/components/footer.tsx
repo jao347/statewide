@@ -22,7 +22,7 @@ export default function Footer() {
           <div>
             <div className="mb-4">
               <Logo
-                imageSrc="logo.png"
+                imageSrc="logo.jpeg"
                 imageAlt="logo"
                 textColor="text-white"
               />
