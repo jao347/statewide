@@ -5,6 +5,7 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Suspense } from "react";
 import "./globals.css";
+import UTMTracker from "@/components/utm-tracker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,6 +28,8 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable} antialiased`}>
         <Suspense fallback={<div>Loading...</div>}>
           <Navigation />
+          <UTMTracker />
+
           {children}
           <Footer />
         </Suspense>

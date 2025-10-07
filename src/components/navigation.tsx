@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, Phone } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import Logo from "./logo";
 import { callNow } from "@/lib/utils";
 
 export default function Navigation() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -23,6 +27,17 @@ export default function Navigation() {
     id: string
   ) => {
     e.preventDefault();
+
+    if (pathname !== "/") {
+      if (id === "html") {
+        router.push("/");
+      } else {
+        router.push(`/#${id.replace("#", "")}`);
+      }
+      setIsOpen(false);
+      return;
+    }
+
     const el = document.querySelector(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -42,7 +57,6 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-20">
           <Logo imageSrc="logo.jpeg" />
 
-          {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="flex items-center space-x-8">
               <a
@@ -88,7 +102,6 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* Call Button (Desktop) */}
           <div className="hidden md:flex items-center">
             <Button
               onClick={callNow}
@@ -99,7 +112,6 @@ export default function Navigation() {
             </Button>
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -114,7 +126,6 @@ export default function Navigation() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <div
           className={`md:hidden transition-all duration-300 ease-in-out ${
             isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"

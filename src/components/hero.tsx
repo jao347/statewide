@@ -17,7 +17,7 @@ export default function Hero() {
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/70"></div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
@@ -39,7 +39,7 @@ export default function Hero() {
 
             <h1 className="text-5xl lg:text-6xl font-bold mb-6 text-balance leading-tight animate-slide-up">
               Professional
-              <span className="text-red-400 block">Chimney Services</span>
+              <span className="text-red-600 block">Chimney Services</span>
               You Can Trust
             </h1>
 
