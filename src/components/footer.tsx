@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter, usePathname } from "next/navigation";
 import { callNow } from "@/lib/utils";
 import {
   Phone,
@@ -8,17 +9,42 @@ import {
   Facebook,
   Twitter,
   Instagram,
-  Flame,
 } from "lucide-react";
-import Link from "next/link";
 import Logo from "./logo";
 
 export default function Footer() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleSmoothScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+
+    if (pathname !== "/") {
+      if (id === "html") {
+        router.push("/");
+      } else {
+        router.push(`/#${id.replace("#", "")}`);
+      }
+      return;
+    }
+
+    const el = document.querySelector(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleServiceClick = (serviceValue: string) => {
+    router.push(`/contact?service=${serviceValue}`);
+  };
+
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* ✅ Consistent Company Info */}
           <div>
             <div className="mb-4">
               <Logo
@@ -38,52 +64,94 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-300 hover:text-white">
+                <a
+                  href="/"
+                  onClick={e => handleSmoothScroll(e, "html")}
+                  className="text-gray-300 hover:text-white"
+                >
                   Home
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/about" className="text-gray-300 hover:text-white">
+                <a
+                  href="#about"
+                  onClick={e => handleSmoothScroll(e, "#about")}
+                  className="text-gray-300 hover:text-white"
+                >
                   About
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/services"
+                <a
+                  href="#services"
+                  onClick={e => handleSmoothScroll(e, "#services")}
                   className="text-gray-300 hover:text-white"
                 >
                   Services
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/contact"
+                <a
+                  href="#contact"
+                  onClick={e => handleSmoothScroll(e, "#contact")}
                   className="text-gray-300 hover:text-white"
                 >
                   Contact
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* Services */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Services</h3>
             <ul className="space-y-2 text-sm">
-              <li className="text-gray-300">Chimney Cleaning</li>
-              <li className="text-gray-300">Chimney Inspection</li>
-              <li className="text-gray-300">Chimney Repair</li>
-              <li className="text-gray-300">Fireplace Installation</li>
-              <li className="text-gray-300">Emergency Services</li>
+              <li>
+                <button
+                  onClick={() => handleServiceClick("chimney-cleaning")}
+                  className="text-gray-300 hover:text-white cursor-pointer text-left"
+                >
+                  Chimney Cleaning
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleServiceClick("chimney-inspection")}
+                  className="text-gray-300 hover:text-white cursor-pointer text-left"
+                >
+                  Chimney Inspection
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleServiceClick("chimney-repair")}
+                  className="text-gray-300 hover:text-white cursor-pointer text-left"
+                >
+                  Chimney Repair
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleServiceClick("fireplace-installation")}
+                  className="text-gray-300 hover:text-white cursor-pointer text-left"
+                >
+                  Fireplace Installation
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleServiceClick("emergency-service")}
+                  className="text-gray-300 hover:text-white cursor-pointer text-left"
+                >
+                  Emergency Services
+                </button>
+              </li>
             </ul>
           </div>
 
-          {/* Contact Info */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
             <div className="space-y-3">
@@ -108,46 +176,45 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex flex-wrap gap-4 mb-4 md:mb-0">
-              <Link
+              <a
                 href="/contact"
                 className="text-gray-400 hover:text-white text-sm"
               >
                 Contact Us
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/privacy-policy"
                 className="text-gray-400 hover:text-white text-sm"
               >
                 Privacy Policy
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/terms-of-use"
                 className="text-gray-400 hover:text-white text-sm"
               >
                 Terms of Use
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/partners"
                 className="text-gray-400 hover:text-white text-sm"
               >
                 Partners
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/do-not-call-list"
                 className="text-gray-400 hover:text-white text-sm"
               >
                 Do Not Call List
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/california-privacy-notice"
                 className="text-gray-400 hover:text-white text-sm"
               >
                 California Privacy Notice
-              </Link>
+              </a>
             </div>
             <p className="text-gray-400 text-sm">© 2025 State Wide Chimney</p>
           </div>
