@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
+import { useState } from "react";
+import Image from "next/image";
 
 const galleryImages = [
   {
@@ -35,7 +35,7 @@ const galleryImages = [
     category: "Installation",
   },
   {
-    src: "/wood-burning-stove-installation-service.jpg",
+    src: "/4-men-1-chimney.png",
     alt: "Wood burning stove installation service",
     category: "Installation",
   },
@@ -44,29 +44,34 @@ const galleryImages = [
     alt: "Chimney waterproofing and leak repair",
     category: "Repair",
   },
-]
+];
 
-const categories = ["All", "Cleaning", "Repair", "Installation", "Inspection"]
+const categories = ["All", "Cleaning", "Repair", "Installation", "Inspection"];
 
 export default function Gallery() {
-  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   const filteredImages =
-    selectedCategory === "All" ? galleryImages : galleryImages.filter((img) => img.category === selectedCategory)
+    selectedCategory === "All"
+      ? galleryImages
+      : galleryImages.filter(img => img.category === selectedCategory);
 
   return (
     <section id="gallery" className="py-20 lg:py-28 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 text-balance">Our Work Gallery</h2>
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 text-balance">
+            Our Work Gallery
+          </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto text-pretty leading-relaxed">
-            See the quality craftsmanship and professional results we deliver for our customers
+            See the quality craftsmanship and professional results we deliver
+            for our customers
           </p>
         </div>
 
         {/* Category Filter */}
         <div className="flex flex-wrap justify-center gap-4 mb-12 animate-slide-up">
-          {categories.map((category) => (
+          {categories.map(category => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
@@ -99,7 +104,9 @@ export default function Gallery() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="absolute bottom-4 left-4 text-white">
-                  <div className="text-sm font-medium bg-red-600 px-2 py-1 rounded-full mb-1">{image.category}</div>
+                  <div className="text-sm font-medium bg-red-600 px-2 py-1 rounded-full mb-1">
+                    {image.category}
+                  </div>
                   <div className="text-xs opacity-90">{image.alt}</div>
                 </div>
               </div>
@@ -108,5 +115,5 @@ export default function Gallery() {
         </div>
       </div>
     </section>
-  )
+  );
 }
