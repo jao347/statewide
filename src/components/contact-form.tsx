@@ -56,7 +56,10 @@ export default function ContactForm({
     try {
       const payload = {
         ...formData,
-        utms: utmData,
+        utms: {
+          ...(utmData || {}),
+          source: window?.location?.hostname.replace(/^www\./, ""),
+        },
       };
 
       const res = await fetch("/api/contact", {
@@ -89,7 +92,7 @@ export default function ContactForm({
   };
 
   return (
-    <div className={className}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
       <h2 className="text-2xl font-bold text-gray-900 mb-8">{title}</h2>
 
       <div className="flex flex-col gap-2">
@@ -200,6 +203,6 @@ export default function ContactForm({
           .
         </div>
       </div>
-    </div>
+    </form>
   );
 }

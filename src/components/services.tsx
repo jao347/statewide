@@ -67,7 +67,15 @@ export default function Services() {
   const router = useRouter();
 
   const handleNavigate = (value: string) => {
-    router.push(`/contact?service=${value}`);
+    if (typeof window === "undefined") return;
+
+    const currentParams = new URLSearchParams(window.location.search);
+
+    currentParams.set("service", value);
+
+    const newUrl = `/contact?${currentParams.toString()}`;
+
+    router.push(newUrl);
   };
 
   return (
