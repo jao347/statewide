@@ -36,40 +36,29 @@ export async function POST(req: Request) {
       }
     }
 
-    const utmSection = utms
-      ? `
-        <h3>UTM Tracking Data:</h3>
-        <ul>
-          ${Object.entries(utms)
-            .map(([key, val]) => `<li><strong>${key}:</strong> ${val}</li>`)
-            .join("")}
-        </ul>
-      `
-      : "<p><em>No UTM data found.</em></p>";
+    const emailBody = `
+      <strong>Source:</strong> ${utms.source || "N/A"}<br>
+      <strong>Name:</strong> ${fullName}<br>
+      <strong>Phone:</strong> ${phone}<br>
+      <strong>Email:</strong> ${email}<br>
+      <strong>Address:</strong> ${fullAddress}<br>
+      <strong>Zipcode:</strong> ${zip}<br>
+      <strong>Service Needed:</strong> ${service}<br>
+      <strong>Describe The Issue Or Request.:</strong> ${message}<br>
+      <strong>Phone Status:</strong> Invalid<br>
+      <strong>UTM Source:</strong> ${utms.utm_source || "No Source"}<br>
+      <strong>UTM Medium:</strong> ${utms.utm_medium || "No Medium"}<br>
+      <strong>UTM Campaign:</strong> ${utms.utm_campaign || "No Campaign"}<br>
+      <strong>UTM Content:</strong> ${utms.utm_content || "No Content"}<br>
+      <strong>UTM Term:</strong> ${utms.utm_term || "No Term"}<br>
+      <strong>GCLID:</strong> ${utms.gclid || "No GCLID"}<br>
+    `;
 
     await transporter.sendMail({
       from: `"State Wide Chimney" <${process.env.SMTP_USER}>`,
-      to: "David@hsipro.net", // ✅ Send directly to David
-      subject: `🔥 New Lead: ${fullName} - ${service}`,
-      html: `
-        <h2>New Contact Request</h2>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Address:</strong> ${fullAddress}</p>
-        <p><strong>ZIP:</strong> ${zip}</p>
-        <p><strong>Requested Service:</strong> ${service}</p>
-        ${
-          message
-            ? `<p><strong>Message:</strong> ${message}</p>`
-            : "<p><em>No message provided.</em></p>"
-        }
-
-        <hr/>
-        ${utmSection}
-        <hr/>
-        <p><small>Sent from StatewideChimney.com</small></p>
-      `,
+      to: `"${process.env.SMTP_USER}"`,
+      subject: `New Lead: ${fullName} - ${service}`,
+      html: emailBody,
     });
 
     if (email && email.includes("@")) {

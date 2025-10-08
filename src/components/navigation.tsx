@@ -28,12 +28,19 @@ export default function Navigation() {
   ) => {
     e.preventDefault();
 
+    const currentParams =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : new URLSearchParams();
+
     if (pathname !== "/") {
-      if (id === "html") {
-        router.push("/");
-      } else {
-        router.push(`/#${id.replace("#", "")}`);
-      }
+      const baseUrl = id === "html" ? "/" : `/#${id.replace("#", "")}`;
+
+      const newUrl = `${baseUrl}${
+        currentParams.toString() ? `?${currentParams.toString()}` : ""
+      }`;
+
+      router.push(newUrl);
       setIsOpen(false);
       return;
     }
