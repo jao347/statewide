@@ -38,7 +38,13 @@ export default function Footer() {
   };
 
   const handleServiceClick = (serviceValue: string) => {
-    router.push(`/contact?service=${serviceValue}`);
+    if (typeof window === "undefined") return;
+
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.set("service", serviceValue);
+
+    const newUrl = `/contact?${currentParams.toString()}`;
+    router.push(newUrl);
   };
 
   return (

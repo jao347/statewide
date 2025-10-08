@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +15,27 @@ export async function POST(req: Request) {
       message = "",
       utms = null,
     } = body;
+
+    let phoneStatus = "Invalid";
+    let formattedPhone = phone;
+    let countryName = "Unknown";
+    let countryCode = "";
+
+    try {
+      const phoneNumber = parsePhoneNumberFromString(phone);
+
+      if (phoneNumber && phoneNumber.isValid()) {
+        phoneStatus = "Valid";
+        formattedPhone = phoneNumber.formatInternational();
+        countryCode = phoneNumber.countryCallingCode;
+        countryName = phoneNumber.country || "Unknown";
+      } else {
+        phoneStatus = "Invalid";
+      }
+    } catch (err) {
+      console.warn("⚠️ Phone parsing error:", err);
+      phoneStatus = "Invalid";
+    }
 
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -45,7 +67,7 @@ export async function POST(req: Request) {
       <strong>Zipcode:</strong> ${zip}<br>
       <strong>Service Needed:</strong> ${service}<br>
       <strong>Describe The Issue Or Request.:</strong> ${message}<br>
-      <strong>Phone Status:</strong> Invalid<br>
+      <strong>Phone Status:</strong> ${phoneStatus}<br>
       <strong>UTM Source:</strong> ${utms.utm_source || "No Source"}<br>
       <strong>UTM Medium:</strong> ${utms.utm_medium || "No Medium"}<br>
       <strong>UTM Campaign:</strong> ${utms.utm_campaign || "No Campaign"}<br>
