@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   CheckCircle,
   Shield,
@@ -64,18 +63,20 @@ const services = [
 ];
 
 export default function Services() {
-  const router = useRouter();
-
-  const handleNavigate = (value: string) => {
+  const handleScrollToContact = (value: string) => {
     if (typeof window === "undefined") return;
 
-    const currentParams = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
+    params.set("service", value);
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, "", newUrl);
 
-    currentParams.set("service", value);
+    const contactSection = document.getElementById("contact");
+    contactSection?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    const newUrl = `/contact?${currentParams.toString()}`;
-
-    router.push(newUrl);
+    setTimeout(() => {
+      (window as any).focusFullNameInput?.();
+    }, 800);
   };
 
   return (
@@ -111,7 +112,7 @@ export default function Services() {
               {services.map((service, index) => (
                 <div
                   key={index}
-                  onClick={() => handleNavigate(service.value)}
+                  onClick={() => handleScrollToContact(service.value)}
                   className="flex items-center gap-3 cursor-pointer group hover:text-red-600 transition-colors"
                 >
                   <CheckCircle className="h-5 w-5 text-red-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -128,7 +129,7 @@ export default function Services() {
           {services.map((service, index) => (
             <div
               key={index}
-              onClick={() => handleNavigate(service.value)}
+              onClick={() => handleScrollToContact(service.value)}
               className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-red-50"
             >
               <service.icon className="h-12 w-12 text-red-600 mb-4" />

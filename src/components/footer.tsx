@@ -37,14 +37,20 @@ export default function Footer() {
     }
   };
 
-  const handleServiceClick = (serviceValue: string) => {
+  const handleScrollToContact = (value: string) => {
     if (typeof window === "undefined") return;
 
-    const currentParams = new URLSearchParams(window.location.search);
-    currentParams.set("service", serviceValue);
+    const params = new URLSearchParams(window.location.search);
+    params.set("service", value);
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, "", newUrl);
 
-    const newUrl = `/contact?${currentParams.toString()}`;
-    router.push(newUrl);
+    const contactSection = document.getElementById("contact");
+    contactSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    setTimeout(() => {
+      (window as any).focusFullNameInput?.();
+    }, 800);
   };
 
   return (
@@ -117,7 +123,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <button
-                  onClick={() => handleServiceClick("chimney-cleaning")}
+                  onClick={() => handleScrollToContact("chimney-cleaning")}
                   className="text-gray-300 hover:text-white cursor-pointer text-left"
                 >
                   Chimney Cleaning
@@ -125,7 +131,7 @@ export default function Footer() {
               </li>
               <li>
                 <button
-                  onClick={() => handleServiceClick("chimney-inspection")}
+                  onClick={() => handleScrollToContact("chimney-inspection")}
                   className="text-gray-300 hover:text-white cursor-pointer text-left"
                 >
                   Chimney Inspection
@@ -133,7 +139,7 @@ export default function Footer() {
               </li>
               <li>
                 <button
-                  onClick={() => handleServiceClick("chimney-repair")}
+                  onClick={() => handleScrollToContact("chimney-repair")}
                   className="text-gray-300 hover:text-white cursor-pointer text-left"
                 >
                   Chimney Repair
@@ -141,7 +147,9 @@ export default function Footer() {
               </li>
               <li>
                 <button
-                  onClick={() => handleServiceClick("fireplace-installation")}
+                  onClick={() =>
+                    handleScrollToContact("fireplace-installation")
+                  }
                   className="text-gray-300 hover:text-white cursor-pointer text-left"
                 >
                   Fireplace Installation
@@ -149,7 +157,7 @@ export default function Footer() {
               </li>
               <li>
                 <button
-                  onClick={() => handleServiceClick("emergency-service")}
+                  onClick={() => handleScrollToContact("emergency-service")}
                   className="text-gray-300 hover:text-white cursor-pointer text-left"
                 >
                   Emergency Services
