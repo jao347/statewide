@@ -18,9 +18,33 @@ export const metadata: Metadata = {
   title: "Statewide Chimney Services",
   description:
     "Professional chimney cleaning, repair, and maintenance services",
+  metadataBase: new URL("https://www.chimneysweepservice.com"),
+  openGraph: {
+    title: "Statewide Chimney Services",
+    description:
+      "Professional chimney cleaning, repair, and maintenance services",
+    url: "https://www.chimneysweepservice.com",
+    siteName: "Statewide Chimney Services",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Statewide Chimney Services Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Statewide Chimney Services",
+    description:
+      "Professional chimney cleaning, repair, and maintenance services",
+    images: ["/og-image.png"],
+  },
   icons: {
-    icon: [{ url: "/favicon.ico" }],
-    apple: [{ url: "/apple-touch-icon.png" }],
+    icon: "/favicon.ico",
   },
 };
 
