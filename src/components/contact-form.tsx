@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { getUTMs } from "@/lib/utm";
 import { trackConversion } from "@/lib/gtag";
+import { Loader } from "@googlemaps/js-api-loader";
 
 interface ContactFormProps {
   title?: string;
@@ -55,102 +56,61 @@ export default function ContactForm({
   }, [defaultService]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !addressRef.current) return;
+    if (!addressRef.current) return;
 
-    const input = addressRef.current;
-
-    input.readOnly = false;
-
-    const ensureEditable = () => {
-      if (input.hasAttribute("readonly")) input.removeAttribute("readonly");
-      input.readOnly = false;
-    };
-    ensureEditable();
-
-    const interval = setInterval(ensureEditable, 300);
-
-    let autocomplete: google.maps.places.Autocomplete | null = null;
-
-    const initAutocomplete = () => {
+    const initAutocomplete = async () => {
       try {
-        if (!window.google?.maps?.places) {
-          console.warn(
-            "⚠️ Google Maps not available — fallback to manual input"
+        // ✅ Load Maps dynamically using new functional API
+        (await window.google?.maps?.importLibrary?.("places")) ??
+          new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+            script.async = true;
+            script.defer = true;
+            script.onload = () => resolve();
+            script.onerror = () =>
+              reject(new Error("Google Maps failed to load"));
+            document.body.appendChild(script);
+          });
+
+        // ✅ Initialize Autocomplete
+        if (window.google?.maps?.places && addressRef.current) {
+          const autocomplete = new window.google.maps.places.Autocomplete(
+            addressRef.current,
+            {
+              types: ["address"],
+              componentRestrictions: { country: "us" },
+            }
           );
-          setAutocompleteError(true);
-          ensureEditable();
-          return;
-        }
 
-        autocomplete = new window.google.maps.places.Autocomplete(input, {
-          types: ["address"],
-          componentRestrictions: { country: "us" },
-        });
+          autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+            if (!place.address_components) return;
 
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete?.getPlace();
-          if (!place?.address_components) return;
-
-          const zipComponent = place.address_components.find(
-            (c: google.maps.GeocoderAddressComponent) =>
-              c.types.includes("postal_code")
-          );
-          const zip = zipComponent ? zipComponent.long_name : "";
-
-          setFormData(prev => ({
-            ...prev,
-            fullAddress: place.formatted_address || "",
-            zip,
-          }));
-        });
-
-        console.log("✅ Google Autocomplete initialized");
-
-        setTimeout(() => {
-          try {
-            // @ts-ignore — Google’s internal listeners
-            google.maps.event.clearInstanceListeners(input);
-            console.log(
-              "🧹 Removed Google Maps event listeners — input stays editable"
+            const zipComponent = place.address_components.find(
+              (c: google.maps.GeocoderAddressComponent) =>
+                c.types.includes("postal_code")
             );
-            ensureEditable();
-          } catch (e) {
-            console.warn("⚠️ Could not clear Google listeners:", e);
-          }
-        }, 1000);
-      } catch (err) {
-        console.error("❌ Autocomplete init failed:", err);
+            const zip = zipComponent ? zipComponent.long_name : "";
+
+            setFormData(prev => ({
+              ...prev,
+              fullAddress: place.formatted_address || "",
+              zip,
+            }));
+          });
+
+          console.log(
+            "✅ Google Autocomplete initialized successfully (new API)"
+          );
+        }
+      } catch (error) {
+        console.error("❌ Google Autocomplete failed:", error);
         setAutocompleteError(true);
-        ensureEditable();
       }
     };
 
-    if (window.google?.maps?.places) {
-      initAutocomplete();
-    } else {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = initAutocomplete;
-      script.onerror = () => {
-        console.error("❌ Google Maps script blocked — manual input only");
-        setAutocompleteError(true);
-        ensureEditable();
-      };
-      document.body.appendChild(script);
-    }
-
-    return () => {
-      clearInterval(interval);
-      try {
-        if (autocomplete) {
-          // @ts-ignore
-          google.maps.event.clearInstanceListeners(input);
-        }
-      } catch {}
-      ensureEditable();
-    };
+    initAutocomplete();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -245,7 +205,6 @@ export default function ContactForm({
         required
       />
 
-      {/* Address field with fallback */}
       <div className="flex flex-col gap-1">
         <Input
           ref={addressRef}
@@ -260,7 +219,7 @@ export default function ContactForm({
         />
         {autocompleteError && (
           <p className="text-xs text-yellow-600">
-            ⚠️ Address autocomplete is unavailable. Please enter manually.
+            ⚠️ Address autocomplete unavailable — please enter manually.
           </p>
         )}
       </div>
@@ -317,19 +276,7 @@ export default function ContactForm({
         <a href="/privacy-policy" className="text-red-600 hover:underline">
           Privacy Policy
         </a>
-        , and authorize State Wide Chimney, its partner service providers, as
-        well as third-party home improvement networks and lead{" "}
-        <a href="/partners" className="text-red-600 hover:underline">
-          partners
-        </a>
-        , to contact you with offers via email, phone, and text at the number
-        you provided. You agree to be contacted even if your number is on any{" "}
-        <a href="/do-not-call-list" className="text-red-600 hover:underline">
-          Do Not Call list
-        </a>
-        . These communications may be delivered via automatic telephone dialing
-        systems or pre-recorded voice messages. Your consent is not a condition
-        of purchase and can be revoked at any time.{" "}
+        , and authorize State Wide Chimney and its partners to contact you.{" "}
         <a
           href="/california-privacy-notice"
           className="text-red-600 hover:underline"
