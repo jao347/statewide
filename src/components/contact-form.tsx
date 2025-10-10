@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { getUTMs } from "@/lib/utm";
+import { trackConversion } from "@/lib/gtag";
 
 interface ContactFormProps {
   title?: string;
@@ -31,17 +32,18 @@ export default function ContactForm({
     message: "",
   });
 
+  const [utmData, setUtmData] = useState<Record<string, string> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [autocompleteError, setAutocompleteError] = useState(false);
+
   const fullNameRef = useRef<HTMLInputElement | null>(null);
+  const addressRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     (window as any).focusFullNameInput = () => {
       fullNameRef.current?.focus();
     };
   }, []);
-
-  const [utmData, setUtmData] = useState<Record<string, string> | null>(null);
-  const [loading, setLoading] = useState(false);
-  const addressRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const data = getUTMs();
@@ -53,23 +55,47 @@ export default function ContactForm({
   }, [defaultService]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !addressRef.current) return;
+
+    const input = addressRef.current;
+
+    input.readOnly = false;
+
+    const ensureEditable = () => {
+      if (input.hasAttribute("readonly")) input.removeAttribute("readonly");
+      input.readOnly = false;
+    };
+    ensureEditable();
+
+    const interval = setInterval(ensureEditable, 300);
+
+    let autocomplete: google.maps.places.Autocomplete | null = null;
 
     const initAutocomplete = () => {
-      if (window.google && addressRef.current) {
-        const autocomplete = new window.google.maps.places.Autocomplete(
-          addressRef.current,
-          {
-            types: ["address"],
-            componentRestrictions: { country: "us" },
-          }
-        );
+      try {
+        if (!window.google?.maps?.places) {
+          console.warn(
+            "⚠️ Google Maps not available — fallback to manual input"
+          );
+          setAutocompleteError(true);
+          ensureEditable();
+          return;
+        }
+
+        autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ["address"],
+          componentRestrictions: { country: "us" },
+        });
 
         autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (!place.address_components) return;
+          const place = autocomplete?.getPlace();
+          if (!place?.address_components) return;
 
-          let zip = "";
+          const zipComponent = place.address_components.find(
+            (c: google.maps.GeocoderAddressComponent) =>
+              c.types.includes("postal_code")
+          );
+          const zip = zipComponent ? zipComponent.long_name : "";
 
           setFormData(prev => ({
             ...prev,
@@ -77,10 +103,29 @@ export default function ContactForm({
             zip,
           }));
         });
+
+        console.log("✅ Google Autocomplete initialized");
+
+        setTimeout(() => {
+          try {
+            // @ts-ignore — Google’s internal listeners
+            google.maps.event.clearInstanceListeners(input);
+            console.log(
+              "🧹 Removed Google Maps event listeners — input stays editable"
+            );
+            ensureEditable();
+          } catch (e) {
+            console.warn("⚠️ Could not clear Google listeners:", e);
+          }
+        }, 1000);
+      } catch (err) {
+        console.error("❌ Autocomplete init failed:", err);
+        setAutocompleteError(true);
+        ensureEditable();
       }
     };
 
-    if (window.google) {
+    if (window.google?.maps?.places) {
       initAutocomplete();
     } else {
       const script = document.createElement("script");
@@ -88,8 +133,24 @@ export default function ContactForm({
       script.async = true;
       script.defer = true;
       script.onload = initAutocomplete;
+      script.onerror = () => {
+        console.error("❌ Google Maps script blocked — manual input only");
+        setAutocompleteError(true);
+        ensureEditable();
+      };
       document.body.appendChild(script);
     }
+
+    return () => {
+      clearInterval(interval);
+      try {
+        if (autocomplete) {
+          // @ts-ignore
+          google.maps.event.clearInstanceListeners(input);
+        }
+      } catch {}
+      ensureEditable();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,8 +178,21 @@ export default function ContactForm({
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         alert("✅ Thank you! Your request has been sent successfully.");
+
+        trackConversion(
+          undefined,
+          process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_ID!,
+          {
+            value: 1.0,
+            currency: "USD",
+            event_label: formData.service,
+          }
+        );
+
         setFormData({
           fullName: "",
           phone: "",
@@ -129,11 +203,10 @@ export default function ContactForm({
           message: "",
         });
       } else {
-        const err = await res.json();
-        alert(`❌ Failed to send. ${err.error || "Please try again."}`);
+        alert(`❌ Failed to send: ${data.error || "Please try again."}`);
       }
     } catch (error) {
-      console.error("❌ Form submission error:", error);
+      console.error("❌ Submission error:", error);
       alert("❌ An unexpected error occurred. Please try again later.");
     } finally {
       setLoading(false);
@@ -172,17 +245,25 @@ export default function ContactForm({
         required
       />
 
-      <Input
-        ref={addressRef}
-        type="text"
-        placeholder="Full Address"
-        value={formData.fullAddress}
-        onChange={e =>
-          setFormData({ ...formData, fullAddress: e.target.value })
-        }
-        required
-        className="text-black placeholder-gray-500"
-      />
+      {/* Address field with fallback */}
+      <div className="flex flex-col gap-1">
+        <Input
+          ref={addressRef}
+          type="text"
+          placeholder="Full Address"
+          value={formData.fullAddress}
+          onChange={e =>
+            setFormData({ ...formData, fullAddress: e.target.value })
+          }
+          required
+          className="text-black placeholder-gray-500"
+        />
+        {autocompleteError && (
+          <p className="text-xs text-yellow-600">
+            ⚠️ Address autocomplete is unavailable. Please enter manually.
+          </p>
+        )}
+      </div>
 
       <Input
         type="text"
