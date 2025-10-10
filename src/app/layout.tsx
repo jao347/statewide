@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "Statewide Chimney Services",
   description:
     "Professional chimney cleaning, repair, and maintenance services",
+  icons: {
+    icon: [{ url: "/favicon.ico" }],
+    apple: [{ url: "/apple-touch-icon.png" }],
+  },
 };
 
 export default function RootLayout({
