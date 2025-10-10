@@ -34,7 +34,6 @@ export function trackConversion(
       ...params,
     });
 
-    console.log("✅ Conversion tracked:", { sendTo, params });
     return true;
   } catch (error) {
     console.error("❌ Failed to track conversion:", error);
