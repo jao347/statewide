@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { getUTMs } from "@/lib/utm";
 import { trackConversion } from "@/lib/gtag";
+import { APIProvider } from "@vis.gl/react-google-maps";
 
 interface ContactFormProps {
   title?: string;
@@ -34,72 +35,24 @@ export default function ContactForm({
 
   const [utmData, setUtmData] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [autocompleteError, setAutocompleteError] = useState(false);
 
   const fullNameRef = useRef<HTMLInputElement | null>(null);
-  const addressRef = useRef<HTMLInputElement | null>(null);
 
-  // 👇 Autofocus helper for global calls
   useEffect(() => {
-    (window as any).focusFullNameInput = () => fullNameRef.current?.focus();
+    (window as any).focusFullNameInput = () => {
+      fullNameRef.current?.focus();
+    };
   }, []);
 
-  // 👇 Grab UTM params from URL
   useEffect(() => {
     const data = getUTMs();
     if (data) setUtmData(data);
   }, []);
 
-  // 👇 Sync service param from query
   useEffect(() => {
     setFormData(prev => ({ ...prev, service: defaultService }));
   }, [defaultService]);
 
-  // ✅ Initialize Google Places Autocomplete (manual setup)
-  useEffect(() => {
-    const initAutocomplete = async () => {
-      try {
-        if (!window.customElements?.get("gmpx-place-autocomplete")) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`;
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-              console.log("✅ Google Maps base API loaded");
-
-              // ✅ Load extended component library as a module
-              const elScript = document.createElement("script");
-              elScript.type = "module";
-              elScript.src =
-                "https://unpkg.com/@googlemaps/extended-component-library@0.6/dist/index.min.js";
-              elScript.async = true;
-              elScript.defer = true;
-              elScript.onload = () => {
-                console.log("✅ Google Extended Components loaded");
-                resolve();
-              };
-              elScript.onerror = () =>
-                reject(new Error("Failed to load extended components"));
-              document.body.appendChild(elScript);
-            };
-            script.onerror = () =>
-              reject(new Error("Failed to load Google Maps script"));
-            document.body.appendChild(script);
-          });
-        }
-
-        // … (same PlaceAutocompleteElement initialization logic as before)
-      } catch (err) {
-        console.error("❌ Autocomplete init failed:", err);
-        setAutocompleteError(true);
-      }
-    };
-
-    initAutocomplete();
-  }, []);
-
-  // ✅ Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -129,6 +82,7 @@ export default function ContactForm({
 
       if (res.ok && data.success) {
         alert("✅ Thank you! Your request has been sent successfully.");
+
         trackConversion(
           undefined,
           process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_ID!,
@@ -191,25 +145,23 @@ export default function ContactForm({
         required
       />
 
-      {/* 👇 Address Autocomplete Field */}
-      <div className="flex flex-col gap-1">
-        <Input
-          ref={addressRef}
-          type="text"
-          placeholder="Full Address"
-          value={formData.fullAddress}
-          onChange={e =>
-            setFormData({ ...formData, fullAddress: e.target.value })
-          }
-          required
-          className="text-black placeholder-gray-500"
+      {/* ✅ New Google PlaceAutocompleteElement */}
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+        <PlaceAutocompleteInput
+          defaultValue={formData.fullAddress}
+          onSelect={place => {
+            const zipComponent = place.address_components?.find(c =>
+              c.types.includes("postal_code")
+            );
+            const zip = zipComponent ? zipComponent.long_name : "";
+            setFormData(prev => ({
+              ...prev,
+              fullAddress: place.formatted_address || "",
+              zip,
+            }));
+          }}
         />
-        {autocompleteError && (
-          <p className="text-xs text-yellow-600">
-            ⚠️ Address autocomplete unavailable — please enter manually.
-          </p>
-        )}
-      </div>
+      </APIProvider>
 
       <Input
         type="text"
@@ -264,26 +216,54 @@ export default function ContactForm({
           Privacy Policy
         </a>
         , and authorize State Wide Chimney, its partner service providers, as
-        well as third-party home improvement networks and lead{" "}
+        well as third-party home improvement networks and{" "}
         <a href="/partners" className="text-red-600 hover:underline">
           partners
-        </a>
-        , to contact you with offers via email, phone, and text at the number
-        you provided. You agree to be contacted even if your number is on any{" "}
-        <a href="/do-not-call-list" className="text-red-600 hover:underline">
-          Do Not Call list
-        </a>
-        . These communications may be delivered via automatic telephone dialing
-        systems or pre-recorded voice messages. Your consent is not a condition
-        of purchase and can be revoked at any time.{" "}
-        <a
-          href="/california-privacy-notice"
-          className="text-red-600 hover:underline"
-        >
-          California Notice
-        </a>
-        .
+        </a>{" "}
+        to contact you.
       </div>
     </form>
+  );
+}
+
+/* -------------------------------
+   ✅ Modern PlaceAutocompleteElement Component
+--------------------------------*/
+function PlaceAutocompleteInput({
+  onSelect,
+  defaultValue = "",
+}: {
+  onSelect: (place: google.maps.places.PlaceResult) => void;
+  defaultValue?: string;
+}) {
+  const ref = useRef<any>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const handlePlaceChange = (event: any) => {
+      const place = event.detail; // emitted by Google’s web component
+      if (place) onSelect(place);
+    };
+
+    el.addEventListener("gmpx-placechange", handlePlaceChange);
+    return () => el.removeEventListener("gmpx-placechange", handlePlaceChange);
+  }, [onSelect]);
+
+  return (
+    <gmpx-place-autocomplete
+      ref={ref}
+      value={defaultValue}
+      placeholder="Full Address"
+      style={{
+        width: "100%",
+        border: "1px solid #d1d5db",
+        borderRadius: "8px",
+        padding: "12px",
+        fontSize: "15px",
+        color: "black",
+      }}
+    ></gmpx-place-autocomplete>
   );
 }
