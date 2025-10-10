@@ -10,6 +10,7 @@ import { Select, SelectItem } from "@/components/ui/select";
 import { getUTMs } from "@/lib/utm";
 import { trackConversion } from "@/lib/gtag";
 import { APIProvider } from "@vis.gl/react-google-maps";
+import GoogleAddressInput from "./ui/googleAddressInput";
 
 interface ContactFormProps {
   title?: string;
@@ -145,23 +146,20 @@ export default function ContactForm({
         required
       />
 
-      {/* ✅ New Google PlaceAutocompleteElement */}
-      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-        <PlaceAutocompleteInput
-          defaultValue={formData.fullAddress}
-          onSelect={place => {
-            const zipComponent = place.address_components?.find(c =>
-              c.types.includes("postal_code")
-            );
-            const zip = zipComponent ? zipComponent.long_name : "";
-            setFormData(prev => ({
-              ...prev,
-              fullAddress: place.formatted_address || "",
-              zip,
-            }));
-          }}
-        />
-      </APIProvider>
+      <GoogleAddressInput
+        value={formData.fullAddress}
+        onSelect={place => {
+          const zipComponent = place.address_components?.find(c =>
+            c.types.includes("postal_code")
+          );
+          const zip = zipComponent ? zipComponent.long_name : "";
+          setFormData(prev => ({
+            ...prev,
+            fullAddress: place.formatted_address || "",
+            zip,
+          }));
+        }}
+      />
 
       <Input
         type="text"
@@ -223,47 +221,5 @@ export default function ContactForm({
         to contact you.
       </div>
     </form>
-  );
-}
-
-/* -------------------------------
-   ✅ Modern PlaceAutocompleteElement Component
---------------------------------*/
-function PlaceAutocompleteInput({
-  onSelect,
-  defaultValue = "",
-}: {
-  onSelect: (place: google.maps.places.PlaceResult) => void;
-  defaultValue?: string;
-}) {
-  const ref = useRef<any>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const handlePlaceChange = (event: any) => {
-      const place = event.detail; // emitted by Google’s web component
-      if (place) onSelect(place);
-    };
-
-    el.addEventListener("gmpx-placechange", handlePlaceChange);
-    return () => el.removeEventListener("gmpx-placechange", handlePlaceChange);
-  }, [onSelect]);
-
-  return (
-    <gmpx-place-autocomplete
-      ref={ref}
-      value={defaultValue}
-      placeholder="Full Address"
-      style={{
-        width: "100%",
-        border: "1px solid #d1d5db",
-        borderRadius: "8px",
-        padding: "12px",
-        fontSize: "15px",
-        color: "black",
-      }}
-    ></gmpx-place-autocomplete>
   );
 }
