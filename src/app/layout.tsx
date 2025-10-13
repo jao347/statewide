@@ -35,8 +35,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      {/* <head>
-
+      <head>
         <link rel="icon" href="/favicon.ico" />
 
         {isProd && (
@@ -74,7 +73,7 @@ export default function RootLayout({
             `}
           </Script>
         )}
-      </head> */}
+      </head>
 
       <body className={`font-sans ${inter.variable} antialiased`}>
         <Suspense fallback={<LoadingScreen />}>
