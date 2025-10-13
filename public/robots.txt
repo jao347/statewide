@@ -1,0 +1,63 @@
+# ===============================
+# ✅ GOOGLE + ADS CRAWLERS
+# ===============================
+User-agent: Googlebot
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
+# ===============================
+# ✅ BING + YAHOO
+# ===============================
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# ===============================
+# ✅ AI CRAWLERS (read-only)
+# ===============================
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: AnthropicAI
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# ===============================
+# ❌ GENERIC BLOCK for unknown bots
+# ===============================
+User-agent: *
+Disallow: /wp-admin/
+Allow: /

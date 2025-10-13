@@ -5,14 +5,12 @@ declare global {
 }
 
 export function trackConversion(
-  url?: string,
-  sendTo: string = `${
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "AW-17637526458"
-  }/${process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_ID || "bBWACITKxqobELqXndpB"}`,
-  params: Record<string, any> = {}
+  conversionId?: string,
+  params: Record<string, any> = {},
+  redirectUrl?: string
 ) {
   if (typeof window === "undefined") {
-    console.warn("trackConversion() called on server — ignored.");
+    console.warn("⚠️ trackConversion() called on server — ignored.");
     return false;
   }
 
@@ -22,10 +20,14 @@ export function trackConversion(
   }
 
   try {
+    const adsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "AW-17637526458";
+    const defaultConversion =
+      process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_ID || "bBWACITKxqobELqXndpB";
+
+    const sendTo = conversionId || `${adsId}/${defaultConversion}`;
+
     const callback = () => {
-      if (url) {
-        window.location.href = url;
-      }
+      if (redirectUrl) window.location.href = redirectUrl;
     };
 
     window.gtag("event", "conversion", {
@@ -34,6 +36,7 @@ export function trackConversion(
       ...params,
     });
 
+    console.log("✅ Conversion sent to:", sendTo, params);
     return true;
   } catch (error) {
     console.error("❌ Failed to track conversion:", error);

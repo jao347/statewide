@@ -12,11 +12,14 @@ export function callNow() {
   if (typeof window === "undefined") return;
 
   try {
-    trackConversion(undefined, undefined, {
-      value: 1.0,
-      currency: "USD",
-      event_label: "Phone Call",
-    });
+    trackConversion(
+      `${process.env.NEXT_PUBLIC_GOOGLE_TAG_ID}/${process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_ID}`,
+      {
+        value: 1.0,
+        currency: "USD",
+        event_label: "Phone Call",
+      }
+    );
 
     window.location.href = `tel:${DEFAULT_NUMBER}`;
   } catch (error) {
