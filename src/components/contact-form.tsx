@@ -174,6 +174,7 @@ export default function ContactForm({
         onChange={e =>
           setFormData({ ...formData, service: e.target.value as string })
         }
+        className="text-black placeholder-gray-500"
         required
       >
         <SelectItem value="chimney-cleaning">Chimney Cleaning</SelectItem>
