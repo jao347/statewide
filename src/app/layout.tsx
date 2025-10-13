@@ -1,15 +1,16 @@
-import type React from "react";
+"use client";
+
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
-import { Suspense } from "react";
 import Script from "next/script";
 import "./globals.css";
-import UTMTracker from "@/components/utm-tracker";
 import LoadingScreen from "@/components/ui/loading";
 
-// ✅ Font optimization
+const UTMTracker = React.lazy(() => import("@/components/utm-tracker"));
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -38,25 +39,18 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.clarity.ms" />
-        {/* <link rel="preconnect" href="https://fonts.googleapis.com" /> */}
-        {/* <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
-        /> */}
-
         <link rel="icon" href="/favicon.ico" />
 
         {isProd && (
           <>
             <Script
-              async
+              id="gtag-lib"
               src={`https://www.googletagmanager.com/gtag/js?id=${googleTagId}`}
-              strategy="afterInteractive"
+              strategy="lazyOnload"
             />
             <Script
-              id="google-gtag-init"
-              strategy="afterInteractive"
+              id="gtag-init"
+              strategy="lazyOnload"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
@@ -66,28 +60,30 @@ export default function RootLayout({
                 `,
               }}
             />
-          </>
-        )}
 
-        {isProd && (
-          <Script id="microsoft-clarity" strategy="lazyOnload">
-            {`
-              setTimeout(() => {
-                (function(c,l,a,r,i,t,y){
-                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                })(window, document, "clarity", "script", "${clarityId}");
-              }, 3000);
-            `}
-          </Script>
+            <Script id="clarity" strategy="lazyOnload">
+              {`
+                setTimeout(() => {
+                  (function(c,l,a,r,i,t,y){
+                      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                  })(window, document, "clarity", "script", "${clarityId}");
+                }, 3000);
+              `}
+            </Script>
+          </>
         )}
       </head>
 
       <body className={`font-sans ${inter.variable} antialiased`}>
         <Suspense fallback={<LoadingScreen />}>
           <Navigation />
-          <UTMTracker />
+
+          <Suspense fallback={null}>
+            <UTMTracker />
+          </Suspense>
+
           {children}
           <Footer />
         </Suspense>
