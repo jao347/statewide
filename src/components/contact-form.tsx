@@ -85,8 +85,7 @@ export default function ContactForm({
         alert("✅ Thank you! Your request has been sent successfully.");
 
         trackConversion(
-          undefined,
-          process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_ID!,
+          `${process.env.NEXT_PUBLIC_GOOGLE_TAG_ID}/${process.env.NEXT_PUBLIC_GOOGLE_CONVERSION_SUBMIT_ID}`,
           {
             value: 1.0,
             currency: "USD",
